@@ -3,12 +3,12 @@
 ## Introduction
 
 Anti-Patrola is a web and mobile application that allows users to report and view road-side police patrols in
-their area. This is a tool that promotes safer driving by keeping users aware that there is the possibility
-of road-side police patrols nearby. It also helps users avoid getting fined for reckless driving. 
+their area. This is a community-driven tool that helps users avoid getting fined for reckless driving or breaking the traffic rules. 
 
-The initial inspiration came from the very popular Facebook and Viber groups that fundamentally do the same thing. 
-However by creating this app, instead of users having to type out a messages, their geolocation is recorded 
+The initial inspiration came from the very popular Facebook and Viber groups that fundamentally do the same thing - inform about road-side police patrol. 
+However by creating this app, instead of users having to type out messages, their geolocation is recorded 
 and broadcast at a push of a button.
+By simplifying and digitizing the process, Anti-Patrola provides real-time solution for this problem with nearly-zero user's effort.
 
 ## Usage
 
