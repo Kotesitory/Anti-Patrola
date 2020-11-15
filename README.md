@@ -75,7 +75,7 @@ The scripts used in the pipelines can be found in the `scripts` directory.
 
 ## Software Requirements Specification
 
-The SRS for this project is contained in (docs/SRS.pdf).
+The SRS for this project is contained in [docs/SRS.pdf](docs/SRS.pdf).
 
 
 | Team member       	| Index     | 
