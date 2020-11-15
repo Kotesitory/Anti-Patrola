@@ -10,6 +10,8 @@ However by creating this app, instead of users having to type out messages, thei
 and broadcast at a push of a button.
 By simplifying and digitizing the process, Anti-Patrola provides real-time solution for this problem with nearly-zero user's effort.
 
+More details about the idea and the product description can be found at: [docs/SRS.pdf](docs/SRS.pdf).
+
 ## Usage
 
 At the moment the project is in its very early stages. So the only parts that are implemented are the pipelines for
