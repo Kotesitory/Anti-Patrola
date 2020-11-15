@@ -6,7 +6,7 @@ Anti-Patrola is a web and mobile application that allows users to report and vie
 their area. This is a tool that promotes safer driving by keeping users aware that there is the possibility
 of road-side police patrols nearby. It also helps users avoid getting fined for reckless driving. 
 
-The initial inspiration came from the very popular Watsapp and Viber groups that fundamentally do the same thing. 
+The initial inspiration came from the very popular Facebook and Viber groups that fundamentally do the same thing. 
 However by creating this app, instead of users having to type out a messages, their geolocation is recorded 
 and broadcast at a push of a button.
 
@@ -14,11 +14,11 @@ and broadcast at a push of a button.
 
 At the moment the project is in its very early stages. So the only parts that are implemented are the pipelines for
 gathering open data from [Open Street Map](https://www.openstreetmap.org/) and user geolocation. The pipelines are
-implemented as modular bash and python scripts which reques, download, parse and save data in a desired format.
+implemented as modular bash and python scripts which request, download, parse and save data in a desired format.
 
-To run the scripts you must have a python 3.X interpreter installed as well as the python modules mentioned in the <requirements>
+To run the scripts you must have a python 3.X interpreter installed as well as the python modules mentioned in the <requirements>.
 The `pipeline.sh` bash script is a pipeline that downloads map data for Macedonia from Open Street Map and further processes it.
-In the end the output is saved in the `data/roads_data.json` file. The pipeline extracts data for highways in macedonia which might be
+In the end the output is saved in the `data/roads_data.json` file. The pipeline extracts data for highways in Macedonia which might be
 useful down the line. To run:
 ```
 bash pipeline.sh
