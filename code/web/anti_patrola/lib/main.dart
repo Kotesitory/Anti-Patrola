@@ -1,11 +1,8 @@
 import 'package:anti_patrola/routes/routes.dart';
 import 'package:anti_patrola/startup.dart';
-//import 'package:atlas/atlas.dart';
 import 'package:flutter/material.dart';
-//import 'package:google_atlas/google_atlas.dart';
 
 void main() {
-  //AtlasProvider.instance = GoogleAtlas();
   Startup.runEssentialPass().then((value) => runApp(MyApp()));
 }
 

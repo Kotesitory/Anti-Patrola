@@ -8,5 +8,3 @@ class RemoteConfigModel {
 
   static double mapZoomValue = 58;
 }
-
-//sk.eyJ1Ijoibmlrb2xhazQ3IiwiYSI6ImNraWQ3YzFmZDByNWkyeHBlaWV4YjFnOG8ifQ.c97m_-VTTHwvTO7EvVumXg
