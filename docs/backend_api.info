@@ -1,0 +1,133 @@
+////////////////////////////////////////////////////////////////////
+
+/// Get all active patrols
+GET /api/patrols
+
+headers: Authorization: "Bearer <google-idToken>"
+
+returns JSON:
+
+{
+	message: "",
+	status: 200,
+	data: {
+		info: {
+			itemCount: int,
+			sort: "NEWEST_FIRST"
+		},
+		patrols: [
+			...
+			{
+				id: str,
+				lat: double,
+				lon: double,
+				confidence: double
+			}
+			...
+		]
+	}
+}
+
+errors: 
+{
+	message: "Unauthorized access", 
+	status: 401
+}
+
+////////////////////////////////////////////////////////////////////
+
+/// Report a new patrol from user geolocation
+POST /api/patrols
+
+headers: Authorization: "Bearer <google-idToken>"
+
+body:
+
+{
+	// This is the user geolocation from where the patrol was reported
+	lon: double,
+	lat: double
+}
+
+returns JSON:
+
+{
+	message: "Success",
+	status: 200,
+}
+
+errors:
+
+{
+	message: "Unauthorized access", 
+	status: 401
+}
+
+{
+	message: "Invelid request", 
+	status: 407
+}
+
+////////////////////////////////////////////////////////////////////
+
+/// Confirm or deny a patrol's existence
+POST /api/patrols/confirm
+
+headers: Authorization: "Bearer <google-idToken>"
+
+body:
+
+{
+	// This is the user geolocation from where the patrol was reported
+	// Used to check if the user is in range of the patrol to confirm/deny it
+	user_lat: double,
+	user_lon: double,
+	patrol_id: str,
+	confirmation: bool
+}
+
+returns JSON:
+
+// This is the new patrol info with the new confidence value
+{
+	message: "Success",
+	status: 200,
+	data: {
+		id: str,
+		lat: double,
+		lon: double,
+		confidence: double
+	}
+}
+
+errors: 
+
+errors:
+
+{
+	message: "Unauthorized access", 
+	status: 401
+}
+
+{
+	message: "User not in range of patrol", 
+	status: 401
+}
+
+{
+	message: "Cannot confirm own patrol", 
+	status: 403
+}
+
+
+{
+	message: "Invalid patrol id", 
+	status: 403
+}
+
+{
+	message: "Invelid request", 
+	status: 407
+}
+
+////////////////////////////////////////////////////////////////////

@@ -33,7 +33,7 @@ router.post('/patrols', extractToken, async (req, res) => {
             res.json({message: "Invelid request", status: 407});
         }
     } else {
-        res.json({message: "Unauthorized access", status: 402});
+        res.json({message: "Unauthorized access", status: 401});
     }
 });
 
@@ -106,7 +106,7 @@ async function verifyPatrolConfirmationRequest (req, res, next) {
             res.json({message: "Unauthorized access", status: 401});
         }
     } else {
-        res.json({message: "Invelid request", status: 401});
+        res.json({message: "Invelid request", status: 407});
     }
 }
 
