@@ -23,10 +23,10 @@
     "mongoose-timestamp": "^0.6.0",
     "morgan": "^1.10.0",
     "passport": "^0.4.1",
-    "passport-google-oauth": "^2.0.0"
+    "passport-google-oauth": "^2.0.0",
+    "dotenv": "^8.2.0"
   },
   "devDependencies": {
-    "dotenv": "^8.2.0",
     "nodemon": "^2.0.6"
   }
 }

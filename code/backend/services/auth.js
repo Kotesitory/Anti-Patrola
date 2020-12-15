@@ -10,6 +10,7 @@ async function verifyAndGetUser(token) {
         });
         const payload = ticket.getPayload();
         const userid = payload['sub'];
+        const name = payload['name'];
         let user = await User.findOne({ googleId: userid });
         if(user){
             return user;

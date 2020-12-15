@@ -11,14 +11,14 @@ dotenv.config({path: './config/config.env'});
 
 connectDB();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 if(process.env.NODE_ENV === 'debug'){
     app.use(morgan('dev'));
 }
 
 // TODO: Remove because not used
-require('./passport-setup');
+//require('./passport-setup');
 
 app.set('view-engine', 'ejs');
 app.use(express.json());

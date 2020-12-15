@@ -4,7 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 class Network{
-  static const String _BASE_URL = 'http://localhost:5000/';
+  // static const String _BASE_URL = 'http://localhost/';
+  static const String _BASE_URL = 'http://18.220.147.217/';
+  //static const String _BASE_URL = 'http://antipatrola.ml/';
   static const int _CONN_TIMEOUT_MILISECONDS = 15000;
 
 
