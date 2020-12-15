@@ -17,7 +17,7 @@ router.post('/patrols', extractToken, async (req, res) => {
         console.log(JSON.stringify(req.body));
         if(req.body['lon'] != undefined && req.body['lat'] != undefined){
             if(Date.now() - user.lastSubmitedAt < PATROL_REPORT_TIMEOUT){
-                res.json({message: "Updating patrols too fast", status: 429});
+                res.status(429).json({message: "Updating patrols too fast", status: 429});
                 return;
             }
 
@@ -32,10 +32,10 @@ router.post('/patrols', extractToken, async (req, res) => {
             PatrolLocation.create(newPatrol);
             res.json({message: "Success", status: 200});
         } else {
-            res.json({message: "Invelid request", status: 407});
+            res.status(407).json({message: "Invelid request", status: 407});
         }
     } else {
-        res.json({message: "Unauthorized access", status: 401});
+        res.status(401).json({message: "Unauthorized access", status: 401});
     }
 });
 
@@ -46,9 +46,9 @@ router.get('/patrols', extractToken, async (req, res) => {
 
         var patrols = await PatrolLocation.find({createdAt: {$gte: dateTimeLimit}}).sort({createdAt: -1});
         var dto = new PatrolContainerDto(patrols.map(p => new PatrolDto(p)));
-        res.json({message: "", status: 200, data: dto});
+        res.json({message: "Success", status: 200, data: dto});
     } else {
-        res.json({message: "Unauthorized access", status: 401});
+        res.status(401).json({message: "Unauthorized access", status: 401});
     }
 });
 
@@ -56,14 +56,14 @@ router.post('/patrols/confirm', extractToken, verifyPatrolConfirmationRequest, a
     let user = req.user;
     let patrol = req.patrol;
     if(patrol.userConfirmations.some(x => x.userId === user.googleId)){
-        res.json({message: "User already confirmed this patrol", status: 401});
+        res.status(403).json({message: "User already confirmed this patrol", status: 403});
     } else{
         let new_conf = adjustPatrolReportConfidence(patrol.confidence, req.body['confirmation']);
         let new_list = patrol.userConfirmations;
         new_list.push({userId: user.googleId, confirmation: req.body['confirmation']});
         await patrol.update({ userConfirmations: new_list, confidence: new_conf });
         patrol.confidence = new_conf;
-        res.json({message: "", status: 200, data: new PatrolDto(patrol)});
+        res.json({message: "Success", status: 200, data: new PatrolDto(patrol)});
     }
 });
 
@@ -76,7 +76,7 @@ function extractToken(req, res, next) {
         req.token = bearerToken;
         next();
     } else {
-        res.json({message: "Unauthorized access", status: 401});
+        res.status(401).json({message: "Unauthorized access", status: 401});
     }
 }
 
@@ -93,7 +93,7 @@ async function verifyPatrolConfirmationRequest (req, res, next) {
 
                     // DEV NOTE: patrol date is too old
                     if(patrolDate < dateTimeLimit){
-                        res.json({message: "Patrol is too old", status: 403});
+                        res.status(403).json({message: "Patrol is too old", status: 403});
                     }else {
                         let a = {lat: user_lat, lon: user_lon};
                         let b = {lat: patrol.lat, lon: patrol.lon}
@@ -102,20 +102,20 @@ async function verifyPatrolConfirmationRequest (req, res, next) {
                             req.patrol = patrol;
                             next();
                         } else{
-                            res.json({message: "User not in range of patrol", status: 401});
+                            res.status(403).json({message: "User not in range of patrol", status: 403});
                         }
                     }
                 }else{
-                    res.json({message: "Cannot confirm own patrol", status: 403});
+                    res.status(403).json({message: "Cannot confirm own patrol", status: 403});
                 }
             }else{
-                res.json({message: "Invalid patrol id", status: 403});
+                res.status(403).json({message: "Invalid patrol id", status: 403});
             }
         } else {
-            res.json({message: "Unauthorized access", status: 401});
+            res.status(401).json({message: "Unauthorized access", status: 401});
         }
     } else {
-        res.json({message: "Invelid request", status: 407});
+        res.status(407).json({message: "Invelid request", status: 407});
     }
 }
 

@@ -1,11 +1,14 @@
 import 'package:anti_patrola/data/dtos/patrol_container_dto.dart';
 import 'package:anti_patrola/data/dtos/patrol_dto.dart';
+import 'package:anti_patrola/exceptions/network_exception.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import 'network_utils.dart';
+
 class Network{
-  // static const String _BASE_URL = 'http://localhost/';
-  static const String _BASE_URL = 'http://18.220.147.217/';
+  static const String _BASE_URL = 'http://localhost/';
+  //static const String _BASE_URL = 'http://18.220.147.217/';
   //static const String _BASE_URL = 'http://antipatrola.ml/';
   static const int _CONN_TIMEOUT_MILISECONDS = 15000;
 
@@ -27,27 +30,33 @@ class Network{
     return _BASE_URL + 'api/patrols/confirm';
   }
 
-  /// Throws 
+  /// Returns all active patrols (reported in the last 1.5h) as a [PatrolContainerDto]
+  /// or NULL if something goes wrong
+  /// Throws [UnauthorizedAccessException] if token is invalid/expired/missing
+  /// Throws [NetworkException] if something goes else wrong;
   Future<PatrolContainerDto> getActivePatrols(String authToken) async {
     Dio dio = _prepareDioWithAuthTokenHeader(authToken: authToken);
     String url = _formatUrlForPatrolReq();
-    
-    // TODO: Error handling and method contract
     try{
       Response jsonResponse = await dio.get(url);
-      int status = jsonResponse.data['status'];
-      if(status == 200){
-        PatrolContainerDto patrolDto = PatrolContainerDto.fromJson(jsonResponse.data['data']);
-        return patrolDto;
-      } else {
-        return null;
-      }
-    } catch(e){
+      PatrolContainerDto patrolDto = PatrolContainerDto.fromJson(jsonResponse.data['data']);
+      return patrolDto;
+    } on DioError catch (e){
+      throw NetworkUtils.mapDioErrorToException(e);
+    } catch (e) {
+      // TODO: Log here
       debugPrint(e.toString());
+      return null;
     }
   }
 
-  /// Throws 
+  /// Reports a patrol at the [lat], [lon] coordinates
+  /// Throws [UnauthorizedAccessException] if token is invalid/expired/missing
+  /// Throws [TooManyRequestsException] if you try to report two or more patrols
+  /// in a quick succession
+  /// Throws [InvalidRequestException] if not all parameters are provided in the request
+  /// Throws [NetworkException] if something goes else wrong; 
+  /// Returns true if report went smoothly
   Future<bool> reportPatrol(double lat, double lon, String authToken) async {
     Dio dio = _prepareDioWithAuthTokenHeader(authToken: authToken);
     String url = _formatUrlForPatrolReq();
@@ -55,14 +64,29 @@ class Network{
       "lat": lat,
       "lon": lon,
     };
-    Response jsonResponse = await dio.post(url, data: data);
-    int status = jsonResponse.data['status'];
-    return status == 200;
-    // TODO: Error handling and method contract
-    // TODO: Handle case when user tries to report a patrol multiple times
+    try{
+      await dio.post(url, data: data);
+      return true;
+    } on DioError catch(e) {
+      throw NetworkUtils.mapDioErrorToException(e);
+    } catch (e) {
+      // TODO: Log here
+      debugPrint(e.toString());
+      return false;
+    }
   }
 
-  /// Throws 
+  /// Reportspatrol with id [patrolId] at the [userLat], [userLon] coordinates
+  /// The [confirmation] paramater refers to whether the user is  confirming 
+  /// or denying the patrols existence
+  /// Throws [UnauthorizedAccessException] if token is invalid/expired/missing
+  /// Throws [ForbiddenActionException] if the patrols is owned by this user, 
+  /// the user has already confirmed/denied this patrol, user is not in range of the patrol,
+  /// an invalid patrol id is passed or the patrol is too old.
+  /// Throws [InvalidRequestException] if not all parameters are provided in the request
+  /// Throws [NetworkException] if something goes else wrong;
+  /// Returns a [PatrolDto] with the new confidence level of the patrol or NULL if
+  /// something goes wrong
   Future<PatrolDto> confirmPatrol(String patrolId, double userLat, double userLon, bool confirmation, String authToken) async {
     Dio dio = _prepareDioWithAuthTokenHeader(authToken: authToken);
     String url = _formatUrlForPatrolConfirm();
@@ -72,14 +96,18 @@ class Network{
       "confirmation": confirmation,
       "patrol_id": patrolId,
     };
-    Response jsonResponse = await dio.post(url, data: data);
-    int status = jsonResponse.data['status'];
-    if(status == 200){
+
+    try{
+      Response jsonResponse = await dio.post(url, data: data);
       PatrolDto patrolDto = PatrolDto.fromJson(jsonResponse.data);
       return patrolDto;
-    } else {
+    } on DioError catch (e){
+      throw NetworkUtils.mapDioErrorToException(e);
+    } catch (e) {
+      // TODO: Log here
+      debugPrint(e.toString());
       return null;
     }
-    // TODO: Error handling and method contract
+    
   }
 }
