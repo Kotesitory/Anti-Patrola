@@ -4,10 +4,12 @@ const PatrolLocation = require('../models/PatrolLocation');
 const PatrolContainerDto = require('../dto/PatrolContainerDto');
 const PatrolDto = require('../dto/PatrolDto');
 const verifyAndGetUser = require('../services/auth');
+const calculateDistance = require('../services/geoService');
 
 const PATROL_REPORT_TIMEOUT = 10 * 60 * 1000; // DEV NOTE: 10 minutes
 const LIMIT_PATROL_AGE = 90 * 60 * 1000; // DEV NOTE: 1.5 hours
-const MAX_DISTANCE_FOR_REPORT = 100; // TODO Adjust this to correct value
+const MAX_DISTANCE_FOR_REPORT = 400; // meters
+const CONFIDENCE_OFFSET = 0.15;
 
 router.post('/patrols', extractToken, async (req, res) => {
     let user = await verifyAndGetUser(req.token);
@@ -42,7 +44,6 @@ router.get('/patrols', extractToken, async (req, res) => {
     if(user){
         var dateTimeLimit = new Date(Date.now() - LIMIT_PATROL_AGE);
 
-        // TODO: Filter patrols with very low confidence
         var patrols = await PatrolLocation.find({createdAt: {$gte: dateTimeLimit}}).sort({createdAt: -1});
         var dto = new PatrolContainerDto(patrols.map(p => new PatrolDto(p)));
         res.json({message: "", status: 200, data: dto});
@@ -85,16 +86,24 @@ async function verifyPatrolConfirmationRequest (req, res, next) {
         let user = await verifyAndGetUser(req.token);
         if(user) {
             var patrol = await PatrolLocation.findOne({_id: req.body['patrol_id']});
-
-            // TODO: check patrol is not too old and check that confidence is not too low
             if(patrol){
                 if(patrol.userId !== user.googleId){
-                    if(checkDistance()){
-                        req.user = user;
-                        req.patrol = patrol;
-                        next();
-                    } else{
-                        res.json({message: "User not in range of patrol", status: 401});
+                    let dateTimeLimit = new Date(Date.now() - LIMIT_PATROL_AGE);
+                    let patrolDate = new Date(patrol.createdAt);
+
+                    // DEV NOTE: patrol date is too old
+                    if(patrolDate < dateTimeLimit){
+                        res.json({message: "Patrol is too old", status: 403});
+                    }else {
+                        let a = {lat: user_lat, lon: user_lon};
+                        let b = {lat: patrol.lat, lon: patrol.lon}
+                        if(checkDistance(a, b)){
+                            req.user = user;
+                            req.patrol = patrol;
+                            next();
+                        } else{
+                            res.json({message: "User not in range of patrol", status: 401});
+                        }
                     }
                 }else{
                     res.json({message: "Cannot confirm own patrol", status: 403});
@@ -111,21 +120,30 @@ async function verifyPatrolConfirmationRequest (req, res, next) {
 }
 
 /// Calculates eucledian distance between user and patrol
-function checkDistance(u_lat, u_lon, p_lat, p_lon){
-    // TODO UNCOMMENT FOR PRODUCTION 
-    return true;
-    let distance = (u_lat - p_lat) ** 2 + (u_lon - p_lon) ** 2;
-    distance = distence ** (1/2);
-    return distance <= MAX_DISTANCE_FOR_REPORT;
+function checkDistance(point_a, point_b){
+    return calculateDistance(point_a, point_b) <= MAX_DISTANCE_FOR_REPORT;
 }
 
 function adjustPatrolReportConfidence(current_value, confirmation){
-    // TODO: implement confidence ligic
-    if (confirmation == true){
-        return 1.0; 
+    let res = 0;
+    if (confirmation){
+        res = sigmoid(clamp(current_value + CONFIDENCE_OFFSET));
     }else {
-        return 0.0;
+        res = sigmoid(clamp(current_value - CONFIDENCE_OFFSET));
     }
+
+    // DEV NOTE: Rounded to 2 decimal places
+    return Math.round(res * 100) / 100;
+}
+
+function sigmoid(x){
+	let exp = Math.exp(-5.0 * (x - 0.5)) + 1;
+	return 1.0 / exp
+}
+
+/// Clamps [x] between 0.0 and 1.0
+function clamp(x){
+    return Math.min(Math.max(x, 0.0), 1.0)
 }
 
 module.exports = router;

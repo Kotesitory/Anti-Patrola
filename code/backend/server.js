@@ -17,7 +17,6 @@ if(process.env.NODE_ENV === 'debug'){
     app.use(morgan('dev'));
 }
 
-// TODO: Remove because not used
 //require('./passport-setup');
 
 app.set('view-engine', 'ejs');

@@ -100,8 +100,6 @@ returns JSON:
 	}
 }
 
-errors: 
-
 errors:
 
 {
@@ -128,6 +126,11 @@ errors:
 {
 	message: "Invelid request", 
 	status: 407
+}
+
+{
+	message: "Patrol is too old",
+	status: 403
 }
 
 ////////////////////////////////////////////////////////////////////
