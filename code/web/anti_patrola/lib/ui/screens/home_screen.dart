@@ -1,6 +1,6 @@
 import 'package:anti_patrola/logic/services/auth_service.dart';
 import 'package:anti_patrola/logic/services/patrol_service.dart';
-import 'package:anti_patrola/ui/screens/mapbox_widget.dart';
+import 'package:anti_patrola/ui/widgets/mapbox_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';

@@ -7,13 +7,12 @@ class AuthService{
   final GoogleSignIn _googleSignIn;
   static const String _ACCESS_TOKEN_TAG = 'accessToken';
   UserModel _currentUser;
+  AuthService({GoogleSignIn googleSignIn}): 
+    _googleSignIn = googleSignIn ?? GoogleSignIn(scopes: ['email']);
 
   /// Get the current logged in used
   /// If no user is logged in returns NULL
   UserModel get currentUser => _currentUser;
-
-  AuthService({GoogleSignIn googleSignIn}): 
-    _googleSignIn = googleSignIn ?? GoogleSignIn(scopes: ['email']);
 
   /// Logs in user with a google account and saves a token
   /// If login was sucessful returns true
@@ -32,7 +31,7 @@ class AuthService{
     }
   }
 
-  /// Signs out user
+  /// Signs out user and deletes token from cache
   Future<bool> signOut() async {
     _currentUser = null;
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -44,7 +43,7 @@ class AuthService{
     return prefs.setString(_ACCESS_TOKEN_TAG, token);
   }
 
-  /// Returns token String if exists, otherwise returns NULL
+  /// Returns token String if one exists, otherwise returns NULL
   Future<String> readToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(_ACCESS_TOKEN_TAG);

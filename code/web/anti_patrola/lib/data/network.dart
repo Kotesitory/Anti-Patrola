@@ -33,7 +33,7 @@ class Network{
   /// Returns all active patrols (reported in the last 1.5h) as a [PatrolContainerDto]
   /// or NULL if something goes wrong
   /// Throws [UnauthorizedAccessException] if token is invalid/expired/missing
-  /// Throws [NetworkException] if something goes else wrong;
+  /// Throws [NetworkException] if something goes else wrong
   Future<PatrolContainerDto> getActivePatrols(String authToken) async {
     Dio dio = _prepareDioWithAuthTokenHeader(authToken: authToken);
     String url = _formatUrlForPatrolReq();
@@ -50,13 +50,12 @@ class Network{
     }
   }
 
-  /// Reports a patrol at the [lat], [lon] coordinates
+  /// Reports a patrol at the [lat], [lon] coordinates, returns true if report went smoothly
   /// Throws [UnauthorizedAccessException] if token is invalid/expired/missing
   /// Throws [TooManyRequestsException] if you try to report two or more patrols
   /// in a quick succession
   /// Throws [InvalidRequestException] if not all parameters are provided in the request
-  /// Throws [NetworkException] if something goes else wrong; 
-  /// Returns true if report went smoothly
+  /// Throws [NetworkException] if something goes else wrong
   Future<bool> reportPatrol(double lat, double lon, String authToken) async {
     Dio dio = _prepareDioWithAuthTokenHeader(authToken: authToken);
     String url = _formatUrlForPatrolReq();
@@ -77,6 +76,8 @@ class Network{
   }
 
   /// Reportspatrol with id [patrolId] at the [userLat], [userLon] coordinates
+  /// Returns a [PatrolDto] with the new confidence level of the patrol or NULL if
+  /// something goes wrong
   /// The [confirmation] paramater refers to whether the user is  confirming 
   /// or denying the patrols existence
   /// Throws [UnauthorizedAccessException] if token is invalid/expired/missing
@@ -84,9 +85,7 @@ class Network{
   /// the user has already confirmed/denied this patrol, user is not in range of the patrol,
   /// an invalid patrol id is passed or the patrol is too old.
   /// Throws [InvalidRequestException] if not all parameters are provided in the request
-  /// Throws [NetworkException] if something goes else wrong;
-  /// Returns a [PatrolDto] with the new confidence level of the patrol or NULL if
-  /// something goes wrong
+  /// Throws [NetworkException] if something goes else wrong
   Future<PatrolDto> confirmPatrol(String patrolId, double userLat, double userLon, bool confirmation, String authToken) async {
     Dio dio = _prepareDioWithAuthTokenHeader(authToken: authToken);
     String url = _formatUrlForPatrolConfirm();
