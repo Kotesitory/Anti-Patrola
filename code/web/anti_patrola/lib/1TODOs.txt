@@ -1,0 +1,8 @@
+======= Nikola TODOs: =============
+- In BLOC Listener, listen for new user's locations and on user location received - update the state (update the user's arrow on the map)
+- On every 5s, send the current user's location (through BLOC - autohandled on timer inside the bloc)
+- In BLOC Listener, listen for new patrols and on patrol location received - update the state (update the patrols on the map)
+
+
+======= Stefan TODOs: =============
+- update patrol model, add distance
