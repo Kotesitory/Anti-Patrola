@@ -50,6 +50,31 @@ class Network{
     }
   }
 
+  /// Returns all active patrols (reported in the last 1.5h) as a [PatrolContainerDto] in the users [radius]
+  /// or NULL if something goes wrong
+  /// Throws [UnauthorizedAccessException] if token is invalid/expired/missing
+  /// Throws [NetworkException] if something goes else wrong
+  Future<PatrolContainerDto> getActivePatrolsInRadius(String authToken, double userLat, double userLon, double radius) async {
+    Dio dio = _prepareDioWithAuthTokenHeader(authToken: authToken);
+    String url = _formatUrlForPatrolReq();
+    Map<String, dynamic> queryParams = {
+      "lat": userLat,
+      "lon": userLon,
+      "radius": radius,
+    };
+    try{
+      Response jsonResponse = await dio.get(url, queryParameters: queryParams);
+      PatrolContainerDto patrolDto = PatrolContainerDto.fromJson(jsonResponse.data['data']);
+      return patrolDto;
+    } on DioError catch (e){
+      throw NetworkUtils.mapDioErrorToException(e);
+    } catch (e) {
+      // TODO: Log here
+      debugPrint(e.toString());
+      return null;
+    }
+  }
+
   /// Reports a patrol at the [lat], [lon] coordinates, returns true if report went smoothly
   /// Throws [UnauthorizedAccessException] if token is invalid/expired/missing
   /// Throws [TooManyRequestsException] if you try to report two or more patrols

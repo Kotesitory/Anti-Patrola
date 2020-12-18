@@ -11,7 +11,8 @@ PatrolDto _$PatrolDtoFromJson(Map<String, dynamic> json) {
     ..id = json['id'] as String
     ..lat = (json['lat'] as num)?.toDouble()
     ..lon = (json['lon'] as num)?.toDouble()
-    ..confidence = (json['confidence'] as num)?.toDouble();
+    ..confidence = (json['confidence'] as num)?.toDouble()
+    ..distance = (json['distance'] as num)?.toDouble();
 }
 
 Map<String, dynamic> _$PatrolDtoToJson(PatrolDto instance) => <String, dynamic>{
@@ -19,4 +20,5 @@ Map<String, dynamic> _$PatrolDtoToJson(PatrolDto instance) => <String, dynamic>{
       'lat': instance.lat,
       'lon': instance.lon,
       'confidence': instance.confidence,
+      'distance': instance.distance,
     };

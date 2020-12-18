@@ -1,3 +1,4 @@
+import 'package:anti_patrola/data/models/patrol_model.dart';
 import 'package:equatable/equatable.dart';
 import 'package:location/location.dart';
 
@@ -14,4 +15,13 @@ class UpdateUserLocationState extends MapScreenState {
 
   @override
   List<Object> get props => [locationData];
+}
+
+class NewPatrolsArrivedState extends MapScreenState {
+  List<PatrolModel> models;
+
+  NewPatrolsArrivedState(this.models);
+
+  @override
+  List<Object> get props => [models];
 }

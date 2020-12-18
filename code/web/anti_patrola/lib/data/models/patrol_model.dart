@@ -12,5 +12,5 @@ class PatrolModel {
       @required this.lat,
       @required this.lon,
       @required this.confidence,
-      this.distance});
+      @required this.distance});
 }

@@ -8,6 +8,7 @@ class PatrolDto{
   double lat;
   double lon;
   double confidence;
+  double distance;
 
   PatrolDto();
 

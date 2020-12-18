@@ -1,4 +1,4 @@
-import 'package:anti_patrola/logic/services/events/event_bus_events.dart';
+import 'package:anti_patrola/logic/events/event_bus_events.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:get_it/get_it.dart';
 import 'package:location/location.dart';

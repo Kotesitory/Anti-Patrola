@@ -4,10 +4,12 @@ import 'package:anti_patrola/data/models/patrol_model.dart';
 import 'package:anti_patrola/data/network.dart';
 import 'package:anti_patrola/logic/services/auth_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 
 class PatrolService{
   Network _network = GetIt.instance<Network>();
   AuthService _authService = GetIt.instance<AuthService>();
+  static const double _RADIUS_FOR_PATROLS = 500.0;
 
   /// Returns a [List<PatrolModel>] of patrols info. 
   /// Throws [UnauthorizedAccessException] if token is invalid/expired/missing
@@ -19,7 +21,22 @@ class PatrolService{
       return List<PatrolModel>();
 
     return dto.patrols.map((p) {
-      PatrolModel(id: p.id, confidence: p.confidence, lat: p.lat, lon: p.lon);
+      PatrolModel(id: p.id, confidence: p.confidence, lat: p.lat, lon: p.lon, distance: p.distance);
+    }).toList();
+  }
+
+  /// Returns a [List<PatrolModel>] of patrols info that are in the user radius
+  /// Throws [UnauthorizedAccessException] if token is invalid/expired/missing
+  /// Throws [NetworkException] if something goes else wrong
+  Future<List<PatrolModel>> getPatrolsNearUser(LatLng userLocation) async {
+    String authToken = await _authService.readToken();
+    PatrolContainerDto dto = await _network.getActivePatrolsInRadius(authToken, userLocation.latitude, userLocation.longitude, _RADIUS_FOR_PATROLS);
+    if(dto == null){
+      return List<PatrolModel>();
+    }
+
+    return dto.patrols.map((p) {
+      PatrolModel(id: p.id, confidence: p.confidence, lat: p.lat, lon: p.lon, distance: p.distance);
     }).toList();
   }
 
@@ -29,9 +46,9 @@ class PatrolService{
   /// in a quick succession
   /// Throws [InvalidRequestException] if not all parameters are provided in the request
   /// Throws [NetworkException] if something goes else wrong
-  Future<bool> reportNewPatrol(double lat, double lon) async {
+  Future<bool> reportNewPatrol(LatLng userLocation) async {
     String authToken = await _authService.readToken();
-    return await _network.reportPatrol(lat, lon, authToken);
+    return await _network.reportPatrol(userLocation.latitude, userLocation.longitude, authToken);
   } 
 
   /// Reportspatrol with id [patrolId] at the [userLat], [userLon] coordinates
@@ -45,9 +62,9 @@ class PatrolService{
   /// an invalid patrol id is passed or the patrol is too old.
   /// Throws [InvalidRequestException] if not all parameters are provided in the request
   /// Throws [NetworkException] if something goes else wrong
-  Future<PatrolModel> confirmPatrol(String patrolId, double userLat, double userLon, bool confirmation) async {
+  Future<PatrolModel> confirmPatrol(String patrolId, LatLng userLocation, bool confirmation) async {
     String authToken = await _authService.readToken();
-    PatrolDto dto = await _network.confirmPatrol(patrolId, userLat, userLon, confirmation, authToken);
-    return PatrolModel(id: dto.id, confidence: dto.confidence, lat: dto.lat, lon: dto.lon);
+    PatrolDto dto = await _network.confirmPatrol(patrolId, userLocation.latitude, userLocation.longitude, confirmation, authToken);
+    return PatrolModel(id: dto.id, confidence: dto.confidence, lat: dto.lat, lon: dto.lon, distance: null);
   } 
 }
