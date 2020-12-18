@@ -1,7 +1,7 @@
 import 'dart:math';
-import 'package:anti_patrola/logic/services/bloc/map_screen_bloc.dart';
-import 'package:anti_patrola/logic/services/bloc/map_screen_events.dart';
-import 'package:anti_patrola/logic/services/bloc/map_screen_states.dart';
+
+import 'package:anti_patrola/logic/bloc/map_screen_bloc.dart';
+import 'package:anti_patrola/logic/bloc/map_screen_states.dart';
 import 'package:anti_patrola/logic/services/geolocation_service.dart';
 import 'package:anti_patrola/resources/app_images.dart';
 import 'package:flutter/material.dart';

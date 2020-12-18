@@ -1,17 +1,24 @@
 import 'dart:async';
-import 'package:anti_patrola/logic/services/bloc/map_screen_events.dart';
-import 'package:anti_patrola/logic/services/bloc/map_screen_states.dart';
-import 'package:anti_patrola/logic/services/events/event_bus_events.dart';
+import 'dart:math';
+
+import 'package:anti_patrola/logic/events/event_bus_events.dart';
 import 'package:anti_patrola/logic/services/geolocation_service.dart';
+import 'package:anti_patrola/logic/services/patrol_service.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:location/location.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
+
+import 'map_screen_events.dart';
+import 'map_screen_states.dart';
 
 class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
   EventBus _eventBus = GetIt.instance<EventBus>();
   GeolocationService _geolocationService = GetIt.instance<GeolocationService>();
   Timer _timer;
   int _sendLocationIntervalInSeconds = 5;
+  PatrolService _patrolService = GetIt.instance<PatrolService>();
 
   MapScreenBloc() : super(InitialState()) {
     _eventBus
@@ -32,11 +39,16 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
       yield InitialState(); // Clears UI
     } else if (event is NewUserLocationEvent) {
       yield UpdateUserLocationState(event.locationData);
+    } else if (event is NewPatrolsArrivedEvent){
+      yield NewPatrolsArrivedState(event.models);
     }
   }
 
   void _sendUserLocation() {
-    // TODO: Implement sending the user location
-    // When the backend receives the user location, calculate the distance and display the near patrols
+    LocationData location = _geolocationService.CurrentLocationData;
+    LatLng latLng = LatLng(location.latitude, location.longitude);
+    _patrolService.getPatrolsNearUser(latLng).then((patrols) {
+      this.add(NewPatrolsArrivedEvent(patrols));
+    });
   }
 }

@@ -45,7 +45,17 @@ router.get('/patrols', extractToken, async (req, res) => {
         var dateTimeLimit = new Date(Date.now() - LIMIT_PATROL_AGE);
 
         var patrols = await PatrolLocation.find({createdAt: {$gte: dateTimeLimit}}).sort({createdAt: -1});
-        var dto = new PatrolContainerDto(patrols.map(p => new PatrolDto(p)));
+        if(requestIsWithRadius(req)){
+            patrols = patrols.map(function(p) { 
+                let a = {lat: req.query.lat, lon: req.query.lon};
+                let b = {lat: p.lat, lon: p.lon}
+                return new PatrolDto(p, calculateDistance(a, b));
+            }).filter(p => p.distance <= req.query.radius);
+        } else {
+            patrols = patrols.map(p => new PatrolDto(p, undefined))
+        }
+
+        var dto = new PatrolContainerDto(patrols);
         res.json({message: "Success", status: 200, data: dto});
     } else {
         res.status(401).json({message: "Unauthorized access", status: 401});
@@ -63,9 +73,13 @@ router.post('/patrols/confirm', extractToken, verifyPatrolConfirmationRequest, a
         new_list.push({userId: user.googleId, confirmation: req.body['confirmation']});
         await patrol.update({ userConfirmations: new_list, confidence: new_conf });
         patrol.confidence = new_conf;
-        res.json({message: "Success", status: 200, data: new PatrolDto(patrol)});
+        res.json({message: "Success", status: 200, data: new PatrolDto(patrol, undefined)});
     }
 });
+
+function requestIsWithRadius(req){
+    return req.query.lat != undefined && req.query.lon != undefined && req.query.radius != undefined;
+}
 
 /// Extracts auth-token from request
 function extractToken(req, res, next) {
@@ -119,7 +133,7 @@ async function verifyPatrolConfirmationRequest (req, res, next) {
     }
 }
 
-/// Calculates eucledian distance between user and patrol
+/// Calculates distance between user and patrol
 function checkDistance(point_a, point_b){
     return calculateDistance(point_a, point_b) <= MAX_DISTANCE_FOR_REPORT;
 }
