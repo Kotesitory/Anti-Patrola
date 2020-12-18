@@ -12,15 +12,20 @@ class GeolocationService {
 
   GeolocationService() {
     location.onLocationChanged.listen((LocationData currentLocation) {
-      _eventBus.fire(UserLocationEvent(currentLocation));
+      if (currentLocation != null) {
+        _eventBus.fire(UserLocationEvent(currentLocation));
+      }
+
       print(
           'Lat: ${currentLocation.latitude} ::: Lon: ${currentLocation.longitude}');
     });
-
-    _startMonitoringLocation();
   }
 
-  void _startMonitoringLocation() async {
+  LocationData get CurrentLocationData {
+    if (_locationData != null) return _locationData;
+  }
+
+  void startMonitoringLocation() async {
     _serviceEnabled = await location.serviceEnabled();
     if (!_serviceEnabled) {
       _serviceEnabled = await location.requestService();

@@ -1,8 +1,11 @@
 ======= Nikola TODOs: =============
-- In BLOC Listener, listen for new user's locations and on user location received - update the state (update the user's arrow on the map)
+- [DONE] In BLOC Listener, listen for new user's locations and on user location received - update the state (update the user's arrow on the map)
 - On every 5s, send the current user's location (through BLOC - autohandled on timer inside the bloc)
-- In BLOC Listener, listen for new patrols and on patrol location received - update the state (update the patrols on the map)
+
 
 
 ======= Stefan TODOs: =============
 - update patrol model, add distance
+- (Stefan) In BLOC Listener, listen for new patrols and on patrol location received - update the state (update the patrols on the map).
+When the user sends the current location, the response is a list of patrol models. Send the patrol models through EventBus, and listen to them in the BLOC (as I listen to user location).
+Then, add the received event to the bloc, and on BlocEvent received, I'll map all the patrols to the map (and handle the logic with warnedPatrols, ...)
