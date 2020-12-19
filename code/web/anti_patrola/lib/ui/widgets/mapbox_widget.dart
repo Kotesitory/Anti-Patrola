@@ -1,10 +1,12 @@
 import 'dart:math';
 
+import 'package:anti_patrola/data/models/patrol_model.dart';
 import 'package:anti_patrola/logic/bloc/map_screen_bloc.dart';
 import 'package:anti_patrola/logic/bloc/map_screen_states.dart';
 import 'package:anti_patrola/logic/services/geolocation_service.dart';
 import 'package:anti_patrola/logic/services/patrol_service.dart';
 import 'package:anti_patrola/resources/app_images.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,11 +22,16 @@ class MapBoxScreenWidget extends StatefulWidget {
 }
 
 class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
+  static const int PATROL_DISTANCE_WARDNING_THRESHOLD_IN_METERS = 20;
   MapboxMapController _controller;
   GeolocationService _geolocationService = GetIt.instance<GeolocationService>();
   Symbol _userSymbol;
   LatLng _initialUserLocation;
   LatLng _skopjeLatLng = LatLng(41.9981, 21.4254);
+  List<PatrolModel> _warnedPatrols = [];
+  List<PatrolModel> _displayedPatrols = [];
+  Size _deviceSize;
+  Timer _timerForCheckingPatrolConfidence;
 
   @override
   void initState() {
@@ -37,30 +44,41 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
   }
 
   void _loadImagesFromAsset() async {
-    _addImageFromAsset(AppImages.PoliceCarSymbol);
-    _addImageFromAsset(AppImages.UserSymbol);
+    _addImageFromAsset('police_car_symbol', AppImages.PoliceCarSymbol);
+    _addImageFromAsset('user_symbol', AppImages.UserSymbol);
   }
 
   /// Adds an asset image to the currently displayed style
-  Future<void> _addImageFromAsset(String assetName) async {
+  Future<void> _addImageFromAsset(String name, String assetName) async {
     final ByteData bytes = await rootBundle.load(assetName);
     final Uint8List list = bytes.buffer.asUint8List();
-    return _controller.addImage(assetName, list);
+    return _controller.addImage(name, list);
   }
 
   @override
   Widget build(BuildContext context) {
+    _deviceSize = MediaQuery.of(context).size;
     return BlocListener<MapScreenBloc, MapScreenState>(
         listener: (listenerContext, state) {
           if (state is UpdateUserLocationState) {
             debugPrint('Updated location');
             LatLng latLng = LatLng(
                 state.locationData.latitude, state.locationData.longitude);
-            setState(() {
-              _addUserSymbol(latLng);
-            });
-          } else if (state is NewPatrolsArrivedState) {
 
+            _addUserSymbol(latLng);
+          } else if (state is NewPatrolsArrivedState) {
+            List<PatrolModel> newPatrols = state.models;
+            for (PatrolModel patrol in newPatrols) {
+              if (!_displayedPatrols.contains(patrol)) {
+                _addPolicePatrol(patrol);
+                if (patrol.distance <=
+                    PATROL_DISTANCE_WARDNING_THRESHOLD_IN_METERS) {
+                  if (!_warnedPatrols.contains(patrol)) {
+                    _warnAboutPatrol(patrol);
+                  }
+                }
+              }
+            }
           }
         },
         child: Stack(
@@ -87,17 +105,7 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
                 child: RaisedButton(
                   color: Colors.red[300],
                   onPressed: () {
-                    var currentLocationData =
-                        GetIt.instance<GeolocationService>()
-                            .CurrentLocationData;
-                    if (currentLocationData == null) {
-                      // TODO: Log this in sentry
-                      debugPrint('Current GeoLocation Data is null');
-                      throw new ArgumentError('Current locationdata is null');
-                    }
-                    GetIt.instance<PatrolService>().reportNewPatrol(LatLng(
-                        currentLocationData.latitude,
-                        currentLocationData.longitude));
+                    _reportPatrol();
                   },
                   child: Text(
                     'Report Patrol',
@@ -110,27 +118,120 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
         ));
   }
 
-  void _addPoliceSymbol(LatLng latLng) {
-    _controller.addSymbol(SymbolOptions(
-      geometry: latLng,
+  void _warnAboutPatrol(PatrolModel patrol) {
+    setState(() {
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.fromLTRB(50, 0, 50, _deviceSize.height * 0.94),
+          backgroundColor: Colors.red[700],
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.warning,
+                color: Colors.white,
+                size: 26,
+              ),
+              SizedBox(
+                width: 20,
+              ),
+              Center(
+                child: Text(
+                  'There is a police patrol near you! Be aware!',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 26),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+
+    _warnedPatrols.add(patrol);
+    Timer.periodic(Duration(seconds: 30), (timer) {
+      timer.cancel();
+      _verifyPatrol(patrol);
+    });
+  }
+
+  void _verifyPatrol(PatrolModel patrol) {
+    var currentLocation = _geolocationService.CurrentLocationData;
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Did you really see a police patrol in the last 30s ?'),
+            actions: [
+              RaisedButton(
+                onPressed: () {
+                  GetIt.instance<PatrolService>().confirmPatrol(
+                      patrol.id,
+                      LatLng(
+                          currentLocation.latitude, currentLocation.longitude),
+                      true);
+                  Navigator.pop(context);
+                },
+                color: Colors.greenAccent,
+                child: Text('YES'),
+              ),
+              RaisedButton(
+                onPressed: () {
+                  GetIt.instance<PatrolService>().confirmPatrol(
+                      patrol.id,
+                      LatLng(
+                          currentLocation.latitude, currentLocation.longitude),
+                      false);
+                  Navigator.pop(context);
+                },
+                color: Colors.redAccent,
+                child: Text('NO'),
+              ),
+            ],
+          );
+        });
+  }
+
+  void _reportPatrol() {
+    var currentLocationData =
+        GetIt.instance<GeolocationService>().CurrentLocationData;
+    if (currentLocationData == null) {
+      // TODO: Log this in sentry
+      debugPrint('Current GeoLocation Data is null');
+      throw new ArgumentError('Current locationdata is null');
+    }
+    GetIt.instance<PatrolService>().reportNewPatrol(
+        LatLng(currentLocationData.latitude, currentLocationData.longitude));
+  }
+
+  void _addPolicePatrol(PatrolModel patrol) {
+    _controller
+        .addSymbol(SymbolOptions(
+      geometry: LatLng(patrol.lat, patrol.lon),
       iconImage: AppImages.PoliceCarSymbol,
       iconSize: 0.5,
-    ));
+    ))
+        .then((value) {
+      _displayedPatrols.add(patrol);
+    });
   }
 
   void _addUserSymbol(LatLng latLng) async {
     if (_userSymbol != null) await _controller.removeSymbol(_userSymbol);
-
-    print("Should add: " + latLng.latitude.toString() + " " + latLng.longitude.toString());
-    if (_controller != null) {
-      _controller
-          .addSymbol(SymbolOptions(
-            geometry: latLng,
-            iconImage: AppImages.UserSymbol,
-            iconSize: 0.5,
-          ))
-          .then((newSymbol) => _userSymbol = newSymbol);
-    } else
-      print('Controller is NULL');
+    _controller
+        .addSymbol(new SymbolOptions(
+      geometry: latLng,
+      iconImage: 'user_symbol',
+      iconSize: 0.5,
+    ))
+        .then((newSymbol) {
+      print("New Symbol: " + newSymbol.id);
+      _userSymbol = newSymbol;
+      _controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+          target: latLng, zoom: RemoteConfigModel.mapZoomValue)));
+    });
   }
 }
