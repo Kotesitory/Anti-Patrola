@@ -1,5 +1,6 @@
 import 'package:anti_patrola/logic/events/event_bus_events.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:location/location.dart';
 
@@ -9,6 +10,7 @@ class GeolocationService {
   bool _serviceEnabled;
   PermissionStatus _permissionGranted;
   LocationData _locationData;
+  bool _hasStartedMonitoring = false;
 
   GeolocationService() {
     location.onLocationChanged.listen((LocationData currentLocation) {
@@ -16,13 +18,26 @@ class GeolocationService {
         _eventBus.fire(UserLocationEvent(currentLocation));
       }
 
+      _initializeAsync();
+
       print(
           'Lat: ${currentLocation.latitude} ::: Lon: ${currentLocation.longitude}');
     });
   }
 
+  _initializeAsync() async {
+    await startMonitoringLocation();
+  }
+
+  bool get HasStartedMonitoringForLocation {
+    return _hasStartedMonitoring;
+  }
+
   LocationData get CurrentLocationData {
-    if (_locationData != null) return _locationData;
+    if (_locationData != null) {
+      print("::: LOCATION");
+      return _locationData;
+    }
   }
 
   void startMonitoringLocation() async {
@@ -43,5 +58,6 @@ class GeolocationService {
     }
 
     _locationData = await location.getLocation();
+    _hasStartedMonitoring = true;
   }
 }

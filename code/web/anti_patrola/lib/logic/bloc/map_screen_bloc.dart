@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:math';
-
 import 'package:anti_patrola/logic/events/event_bus_events.dart';
 import 'package:anti_patrola/logic/services/geolocation_service.dart';
 import 'package:anti_patrola/logic/services/patrol_service.dart';
@@ -9,14 +7,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-
 import 'map_screen_events.dart';
 import 'map_screen_states.dart';
 
 class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
   EventBus _eventBus = GetIt.instance<EventBus>();
   GeolocationService _geolocationService = GetIt.instance<GeolocationService>();
-  Timer _timer;
+  Timer _timer; // TODO: Dispose this on close
   int _sendLocationIntervalInSeconds = 5;
   PatrolService _patrolService = GetIt.instance<PatrolService>();
 
@@ -29,6 +26,10 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
 
     _timer = Timer.periodic(Duration(seconds: _sendLocationIntervalInSeconds),
         (timer) {
+      print('TimerStarted');
+      if(!_geolocationService.HasStartedMonitoringForLocation)
+        return;
+
       _sendUserLocation();
     });
   }
@@ -39,13 +40,14 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
       yield InitialState(); // Clears UI
     } else if (event is NewUserLocationEvent) {
       yield UpdateUserLocationState(event.locationData);
-    } else if (event is NewPatrolsArrivedEvent){
-      yield NewPatrolsArrivedState(event.models);
+    } else if (event is NewPatrolsArrivedEvent) {
+      if (event.models.isNotEmpty) yield NewPatrolsArrivedState(event.models);
     }
   }
 
   void _sendUserLocation() {
     LocationData location = _geolocationService.CurrentLocationData;
+    if (location == null) print('Location is null');
     LatLng latLng = LatLng(location.latitude, location.longitude);
     _patrolService.getPatrolsNearUser(latLng).then((patrols) {
       this.add(NewPatrolsArrivedEvent(patrols));

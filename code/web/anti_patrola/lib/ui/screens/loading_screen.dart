@@ -18,7 +18,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   void _initAsync() async {
     await Startup.runEssentialPass();
-    Navigator.pushReplacementNamed(context, Routes.HomeScreen);
+    Navigator.pushReplacementNamed(context, Routes.LoginScreen);
   }
 
   @override

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:anti_patrola/logic/bloc/map_screen_bloc.dart';
 import 'package:anti_patrola/logic/bloc/map_screen_states.dart';
 import 'package:anti_patrola/logic/services/geolocation_service.dart';
+import 'package:anti_patrola/logic/services/patrol_service.dart';
 import 'package:anti_patrola/resources/app_images.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,14 +24,16 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
   GeolocationService _geolocationService = GetIt.instance<GeolocationService>();
   Symbol _userSymbol;
   LatLng _initialUserLocation;
+  LatLng _skopjeLatLng = LatLng(41.9981, 21.4254);
 
   @override
   void initState() {
     super.initState();
-    _geolocationService.startMonitoringLocation();
     var locationData = _geolocationService.CurrentLocationData;
-    _initialUserLocation =
-        LatLng(locationData.latitude, locationData.longitude);
+    (locationData != null)
+        ? _initialUserLocation =
+            LatLng(locationData.latitude, locationData.longitude)
+        : _initialUserLocation = _skopjeLatLng;
   }
 
   void _loadImagesFromAsset() async {
@@ -56,6 +59,8 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
             setState(() {
               _addUserSymbol(latLng);
             });
+          } else if (state is NewPatrolsArrivedState) {
+
           }
         },
         child: Stack(
@@ -67,7 +72,7 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
               myLocationRenderMode: MyLocationRenderMode.GPS,
               styleString: MapboxStyles.MAPBOX_STREETS,
               initialCameraPosition: CameraPosition(
-                  target: _initialUserLocation, zoom: RemoteConfigModel.mapZoomValue),
+                  target: _skopjeLatLng, zoom: RemoteConfigModel.mapZoomValue),
               onMapCreated: (cntrl) {
                 _controller = cntrl;
               },
@@ -78,12 +83,26 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
             Align(
               alignment: Alignment.bottomLeft,
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(50.0),
                 child: RaisedButton(
+                  color: Colors.red[300],
                   onPressed: () {
-                    // TODO: Implement reporting the patrol
+                    var currentLocationData =
+                        GetIt.instance<GeolocationService>()
+                            .CurrentLocationData;
+                    if (currentLocationData == null) {
+                      // TODO: Log this in sentry
+                      debugPrint('Current GeoLocation Data is null');
+                      throw new ArgumentError('Current locationdata is null');
+                    }
+                    GetIt.instance<PatrolService>().reportNewPatrol(LatLng(
+                        currentLocationData.latitude,
+                        currentLocationData.longitude));
                   },
-                  child: Text('Report Patrol'),
+                  child: Text(
+                    'Report Patrol',
+                    style: TextStyle(fontSize: 22),
+                  ),
                 ),
               ),
             ),
@@ -100,13 +119,18 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
   }
 
   void _addUserSymbol(LatLng latLng) async {
-    await _controller.removeSymbol(_userSymbol);
-    _controller
-        .addSymbol(SymbolOptions(
-          geometry: latLng,
-          iconImage: AppImages.UserSymbol,
-          iconSize: 0.5,
-        ))
-        .then((newSymbol) => _userSymbol = newSymbol);
+    if (_userSymbol != null) await _controller.removeSymbol(_userSymbol);
+
+    print("Should add: " + latLng.latitude.toString() + " " + latLng.longitude.toString());
+    if (_controller != null) {
+      _controller
+          .addSymbol(SymbolOptions(
+            geometry: latLng,
+            iconImage: AppImages.UserSymbol,
+            iconSize: 0.5,
+          ))
+          .then((newSymbol) => _userSymbol = newSymbol);
+    } else
+      print('Controller is NULL');
   }
 }
