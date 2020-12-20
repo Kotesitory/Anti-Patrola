@@ -101,15 +101,20 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
             Align(
               alignment: Alignment.bottomLeft,
               child: Padding(
-                padding: const EdgeInsets.all(50.0),
+                padding: EdgeInsets.all(_deviceSize.width * 0.028),
                 child: RaisedButton(
-                  color: Colors.red[300],
+                  elevation: 12,
+                  color: Colors.red[800],
                   onPressed: () {
                     _reportPatrol();
                   },
-                  child: Text(
-                    'Report Patrol',
-                    style: TextStyle(fontSize: 22),
+                  child: Padding(
+                    padding: const EdgeInsets.all(17.0),
+                    child: Text(
+                      'Report Patrol',
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
                   ),
                 ),
               ),
@@ -164,7 +169,7 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Did you really see a police patrol in the last 30s ?'),
+            title: Text('Did you see a police patrol in the last 30s ?'),
             actions: [
               RaisedButton(
                 onPressed: () {

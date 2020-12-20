@@ -2,18 +2,13 @@ import 'package:anti_patrola/logic/bloc/map_screen_bloc.dart';
 import 'package:anti_patrola/logic/services/auth_service.dart';
 import 'package:anti_patrola/logic/services/geolocation_service.dart';
 import 'package:anti_patrola/logic/services/patrol_service.dart';
+import 'package:anti_patrola/resources/app_images.dart';
 import 'package:anti_patrola/routes/routes.dart';
 import 'package:anti_patrola/ui/widgets/mapbox_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-
-/// The current user streams the location on every 5 seconds (on 5s => check for patrols). When the backend receives the location, a calculation is run (if there's a patrol in radius of 500m, a notification is sent)
-/// If the user's location is in radius of 20m from the police patrol, show confirmation dialog
-/// {patrol_id, distance}
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key key}) : super(key: key);
@@ -33,77 +28,62 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Stack(
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            ScreenFactory.createMapBoxScreen(),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(text),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FlatButton(
-                    child: Container(
-                        color: Colors.greenAccent,
-                        padding: const EdgeInsets.all(8),
-                        child: Text("Google Login")),
-                    onPressed: () =>
-                        GetIt.instance<AuthService>().signInWithGoogle(),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FlatButton(
-                    child: Container(
-                        color: Colors.greenAccent,
-                        padding: const EdgeInsets.all(8),
-                        child: Text("Get Patrols")),
-                    onPressed: () => GetIt.instance<PatrolService>()
-                        .getPatrols(), // Once on the start, then on every 30s. Used only for UI representation.
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FlatButton(
-                    child: Container(
-                        color: Colors.greenAccent,
-                        padding: const EdgeInsets.all(8),
-                        child: Text("Report Patrol")),
-                    onPressed: () => GetIt.instance<PatrolService>()
-                        .reportNewPatrol(LatLng(1.0, 0.0)),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FlatButton(
-                    child: Container(
-                        color: Colors.greenAccent,
-                        padding: const EdgeInsets.all(8),
-                        child: Text("Get Rediused Patrol")),
-                    onPressed: () => GetIt.instance<PatrolService>()
-                        .getPatrolsNearUser(LatLng(1.0, 0.0)),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FlatButton(
-                    child: Container(
-                        color: Colors.greenAccent,
-                        padding: const EdgeInsets.all(8),
-                        child: Text("Confirm Patrol")),
-                    onPressed: () => GetIt.instance<AuthService>()
-                        .readToken()
-                        .then((value) => setState(() {
-                              text = value;
-                            })),
-                  ),
-                ),
-              ],
+            Image.asset(
+              AppImages.Logo,
+              scale: 12,
+            ),
+            RaisedButton(
+              elevation: 0,
+              color: Colors.transparent,
+              onPressed: () {
+                // TODO: Implement logout
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        backgroundColor: Colors.white,
+                        title: Text('Are you sure you want to logout?'),
+                        actions: [
+                          RaisedButton(
+                            onPressed: () {
+                              GetIt.instance<AuthService>()
+                                  .signOut()
+                                  .then((isSignedOut) {
+                                if (isSignedOut)
+                                  Navigator.pushReplacementNamed(
+                                      context, Routes.LoginScreen);
+                              });
+                              Navigator.pop(context);
+                            },
+                            color: Colors.greenAccent,
+                            child: Text('YES'),
+                          ),
+                          RaisedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            color: Colors.redAccent,
+                            child: Text('NO'),
+                          ),
+                        ],
+                      );
+                    });
+              },
+              child: Text(
+                'Logout',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
+      ),
+      body: Center(
+        child: ScreenFactory.createMapBoxScreen(),
       ),
     );
   }
