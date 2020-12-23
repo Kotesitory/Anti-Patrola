@@ -1,23 +1,15 @@
-FROM fluttersdk/fluttersdk
+FROM python:3.8-slim
 
 WORKDIR /web
 
-COPY anti_patrola anti_patrola
+COPY server.py .
+COPY certificate.crt .
+COPY private.key .
 
-WORKDIR /web/anti_patrola
+COPY anti_patrola/build/web .
 
-RUN pwd
+RUN ls
 
-RUN flutter channel beta
+EXPOSE 443
 
-RUN flutter upgrade
-
-RUN flutter config --enable-web
-
-RUN flutter build web
-
-RUN flutter pub global activate dhttpd
-
-EXPOSE 80
-
-CMD ["flutter", "pub", "global", "run", "dhttpd", "-p", "80", "--path", "build/web"]
+CMD ["python", "server.py"]

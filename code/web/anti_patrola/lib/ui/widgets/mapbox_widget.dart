@@ -1,12 +1,9 @@
-import 'dart:math';
-
 import 'package:anti_patrola/data/models/patrol_model.dart';
 import 'package:anti_patrola/logic/bloc/map_screen_bloc.dart';
 import 'package:anti_patrola/logic/bloc/map_screen_states.dart';
 import 'package:anti_patrola/logic/services/geolocation_service.dart';
 import 'package:anti_patrola/logic/services/patrol_service.dart';
 import 'package:anti_patrola/resources/app_images.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -112,8 +109,10 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
                     padding: const EdgeInsets.all(17.0),
                     child: Text(
                       'Report Patrol',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
                     ),
                   ),
                 ),

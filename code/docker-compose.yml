@@ -5,7 +5,8 @@ services:
     restart: always
     build: ./web
     ports:
-      - '80:80'
+      - '4443:443'
+      #- '80:443'
     links:
       - server
   server:
@@ -13,7 +14,7 @@ services:
     restart: always
     build: ./backend
     ports:
-      - '3000:3000'
+      - '5000:5000'
     links:
       - mongo
   mongo:

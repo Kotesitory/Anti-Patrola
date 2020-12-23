@@ -7,9 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'network_utils.dart';
 
 class Network{
-  static const String _BASE_URL = 'http://localhost:5000/';
-  //static const String _BASE_URL = 'http://18.220.147.217/';
-  //static const String _BASE_URL = 'http://antipatrola.ml/';
+  //static const String _BASE_URL = 'http://localhost:5000/';
+  //static const String _BASE_URL = 'https://antipatrola.ml';
+  static const String _BASE_URL = 'https://localhost:5000/';
   static const int _CONN_TIMEOUT_MILISECONDS = 15000;
 
 
@@ -28,6 +28,13 @@ class Network{
 
   String _formatUrlForPatrolConfirm() {
     return _BASE_URL + 'api/patrols/confirm';
+  }
+
+  /// Only for testing CORS and endpoint connections
+  Future<void> getBackEnd() async {
+    Dio dio = Dio();
+    var resp = await dio.get(_BASE_URL);
+    print('${resp.data.toString()}');
   }
 
   /// Returns all active patrols (reported in the last 1.5h) as a [PatrolContainerDto]
