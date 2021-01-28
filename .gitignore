@@ -1,2 +1,7 @@
 data/map.osm
 data/map
+*.zip
+*.rar
+*.crt
+*.key
+*.pem

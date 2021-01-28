@@ -20,8 +20,16 @@ app.set('view-engine', 'ejs');
 app.use(express.json());
 
 //var whitelist = [];
-var whitelist = ['http://localhost', 'https://antipatrola.ml', 'https://www.antipatrola.ml', 
-	'https://client:443', 'https://localhost:4443'];
+var whitelist = [
+    'https://antipatrola.ml',
+    'https://www.antipatrola.ml',
+	'https://localhost:443',
+    'https://localhost:80',
+    'https://localhost:4200',
+    'http://client',
+    'https://client',
+    'https://localhost:3000'
+];
 
 // TODO: Update this to real origin
 var corsOptions = {
@@ -42,10 +50,10 @@ app.use(cors(corsOptions));
 app.use('/', require('./routes/index'));
 app.use('/api', require('./routes/api'));
 app.use(function(req, res) {
-    res.json({message:'404: Page not Found', status:404});
+    res.status(404).json({message:'404: Page not Found', status:404});
 });
 app.use(function(req, res) {
-    res.json({message:'500: Internal Server Error', status:500});
+    res.status(500).json({message:'500: Internal Server Error', status:500});
 });
 
 const httpsServer = https.createServer({

@@ -1,13 +1,17 @@
 FROM node:10
 
-WORKDIR /backend
+WORKDIR /app
 
 COPY package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY ./backend .
 
-EXPOSE 3000
+COPY certificate.crt .
+COPY private.key .
+COPY dhparams.pem .
 
-CMD ["npm", "start"]
+EXPOSE 5000
+
+ENTRYPOINT ["npm", "start"]

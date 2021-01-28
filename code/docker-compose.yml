@@ -1,24 +1,33 @@
 version: '3.7'
 services:
   client:
-    container_name: flutter_client
+    image: kotesitory/antipatrola:front
     restart: always
-    build: ./web
     ports:
-      - '4443:443'
-      #- '80:443'
+      - '3000:443'
+      - '3001:80'
     links:
       - server
+      - mongo
+    depends_on:
+      - server
+      - mongo
   server:
-    container_name: node_server
+    image: kotesitory/antipatrola:back
     restart: always
-    build: ./backend
     ports:
-      - '5000:5000'
+      - '5005:5000'
     links:
       - mongo
+    depends_on:
+      - mongo
   mongo:
-    container_name: database
     image: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=anti_boys
+      - MONGO_INITDB_ROOT_PASSWORD=anti_shpageti
     ports:
       - '27017:27017'
+    # volumes:
+    #   - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    #   - ./mongo-volume:/data/db

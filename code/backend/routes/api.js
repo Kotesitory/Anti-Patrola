@@ -30,7 +30,7 @@ router.post('/patrols', extractToken, async (req, res) => {
             };
 
             PatrolLocation.create(newPatrol);
-            res.json({message: "Success", status: 200});
+            res.status(200);
         } else {
             res.status(407).json({message: "Invelid request", status: 407});
         }
@@ -52,11 +52,11 @@ router.get('/patrols', extractToken, async (req, res) => {
                 return new PatrolDto(p, calculateDistance(a, b));
             }).filter(p => p.distance <= req.query.radius);
         } else {
-            patrols = patrols.map(p => new PatrolDto(p, undefined))
+            patrols = patrols.map(p => new PatrolDto(p, null))
         }
 
         var dto = new PatrolContainerDto(patrols);
-        res.json({message: "Success", status: 200, data: dto});
+        res.json(dto);
     } else {
         res.status(401).json({message: "Unauthorized access", status: 401});
     }
@@ -73,7 +73,7 @@ router.post('/patrols/confirm', extractToken, verifyPatrolConfirmationRequest, a
         new_list.push({userId: user.googleId, confirmation: req.body['confirmation']});
         await patrol.update({ userConfirmations: new_list, confidence: new_conf });
         patrol.confidence = new_conf;
-        res.json({message: "Success", status: 200, data: new PatrolDto(patrol, undefined)});
+        res.json(new PatrolDto(patrol, null));
     }
 });
 
