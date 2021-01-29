@@ -1,14 +1,9 @@
-import 'package:anti_patrola/logic/bloc/map_screen_bloc.dart';
 import 'package:anti_patrola/logic/services/auth_service.dart';
-import 'package:anti_patrola/logic/services/geolocation_service.dart';
-import 'package:anti_patrola/logic/services/patrol_service.dart';
 import 'package:anti_patrola/resources/app_images.dart';
 import 'package:anti_patrola/routes/routes.dart';
-import 'package:anti_patrola/ui/widgets/mapbox_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:mapbox_gl/mapbox_gl.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key key}) : super(key: key);

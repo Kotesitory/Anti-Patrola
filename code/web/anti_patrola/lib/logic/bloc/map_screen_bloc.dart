@@ -27,7 +27,7 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
     _timer = Timer.periodic(Duration(seconds: _sendLocationIntervalInSeconds),
         (timer) {
       print('TimerStarted');
-      if(!_geolocationService.HasStartedMonitoringForLocation)
+      if(!_geolocationService.hasStartedMonitoringForLocation)
         return;
 
       _sendUserLocation();
@@ -46,11 +46,11 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
   }
 
   void _sendUserLocation() {
-    LocationData location = _geolocationService.CurrentLocationData;
-    if (location == null) print('Location is null');
+    LocationData location = _geolocationService.currentLocationData;
+    if (location == null) return;
     LatLng latLng = LatLng(location.latitude, location.longitude);
     _patrolService.getPatrolsNearUser(latLng).then((patrols) {
       this.add(NewPatrolsArrivedEvent(patrols));
-    });
+    }).catchError((e) => print("ERROR WHILE GETING PATROLS: ${e.toString()}"));
   }
 }
