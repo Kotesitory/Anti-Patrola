@@ -1,14 +1,12 @@
 import 'package:anti_patrola/logic/events/event_bus_events.dart';
 import 'package:event_bus/event_bus.dart';
-import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:location/location.dart';
 
 class GeolocationService {
   EventBus _eventBus = GetIt.instance<EventBus>();
   Location location = new Location();
-  bool _serviceEnabled;
-  PermissionStatus _permissionGranted;
+  bool _serviceEnabled = false;
   LocationData _locationData;
   bool _hasStartedMonitoring = false;
 
@@ -29,18 +27,20 @@ class GeolocationService {
     await startMonitoringLocation();
   }
 
-  bool get HasStartedMonitoringForLocation {
+  bool get hasStartedMonitoringForLocation {
     return _hasStartedMonitoring;
   }
 
-  LocationData get CurrentLocationData {
+  LocationData get currentLocationData {
     if (_locationData != null) {
       print("::: LOCATION");
       return _locationData;
-    }
+    } 
+
+    return null;
   }
 
-  void startMonitoringLocation() async {
+  Future<void> startMonitoringLocation() async {
     _serviceEnabled = await location.serviceEnabled();
     if (!_serviceEnabled) {
       _serviceEnabled = await location.requestService();
@@ -49,7 +49,7 @@ class GeolocationService {
       }
     }
 
-    _permissionGranted = await location.hasPermission();
+    PermissionStatus _permissionGranted = await location.hasPermission();
     if (_permissionGranted == PermissionStatus.denied) {
       _permissionGranted = await location.requestPermission();
       if (_permissionGranted != PermissionStatus.granted) {
