@@ -8,8 +8,8 @@ import 'network_utils.dart';
 
 class Network{
   //static const String _BASE_URL = 'http://localhost:5000/';
-  //static const String _BASE_URL = 'https://antipatrola.ml';
-  static const String _BASE_URL = 'https://localhost:5000/';
+  static const String _BASE_URL = 'https://antipatrola.ml:5000/';
+  //static const String _BASE_URL = 'https://server/';
   static const int _CONN_TIMEOUT_MILISECONDS = 15000;
 
 
@@ -46,7 +46,7 @@ class Network{
     String url = _formatUrlForPatrolReq();
     try{
       Response jsonResponse = await dio.get(url);
-      PatrolContainerDto patrolDto = PatrolContainerDto.fromJson(jsonResponse.data['data']);
+      PatrolContainerDto patrolDto = PatrolContainerDto.fromJson(jsonResponse.data);
       return patrolDto;
     } on DioError catch (e){
       throw NetworkUtils.mapDioErrorToException(e);
@@ -71,7 +71,7 @@ class Network{
     };
     try{
       Response jsonResponse = await dio.get(url, queryParameters: queryParams);
-      PatrolContainerDto patrolDto = PatrolContainerDto.fromJson(jsonResponse.data['data']);
+      PatrolContainerDto patrolDto = PatrolContainerDto.fromJson(jsonResponse.data);
       return patrolDto;
     } on DioError catch (e){
       throw NetworkUtils.mapDioErrorToException(e);
