@@ -1,4 +1,5 @@
 import 'package:anti_patrola/data/models/patrol_model.dart';
+import 'package:anti_patrola/exceptions/network_exception.dart';
 import 'package:anti_patrola/logic/bloc/map_screen_bloc.dart';
 import 'package:anti_patrola/logic/bloc/map_screen_states.dart';
 import 'package:anti_patrola/logic/services/geolocation_service.dart';
@@ -27,13 +28,12 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
   LatLng _skopjeLatLng = LatLng(41.9981, 21.4254);
   List<PatrolModel> _warnedPatrols = [];
   List<PatrolModel> _displayedPatrols = [];
-  Size _deviceSize;
-  Timer _timerForCheckingPatrolConfidence;
+  Size _deviceSize = Size(0,0);
 
   @override
   void initState() {
     super.initState();
-    var locationData = _geolocationService.CurrentLocationData;
+    var locationData = _geolocationService.currentLocationData;
     (locationData != null)
         ? _initialUserLocation =
             LatLng(locationData.latitude, locationData.longitude)
@@ -49,7 +49,7 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
   Future<void> _addImageFromAsset(String name, String assetName) async {
     final ByteData bytes = await rootBundle.load(assetName);
     final Uint8List list = bytes.buffer.asUint8List();
-    return _controller.addImage(name, list);
+    _controller?.addImage(name, list);
   }
 
   @override
@@ -58,23 +58,12 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
     return BlocListener<MapScreenBloc, MapScreenState>(
         listener: (listenerContext, state) {
           if (state is UpdateUserLocationState) {
-            debugPrint('Updated location');
-            LatLng latLng = LatLng(
-                state.locationData.latitude, state.locationData.longitude);
-
+            LatLng latLng = LatLng(state.locationData.latitude, state.locationData.longitude);
             _addUserSymbol(latLng);
           } else if (state is NewPatrolsArrivedState) {
             List<PatrolModel> newPatrols = state.models;
             for (PatrolModel patrol in newPatrols) {
-              if (!_displayedPatrols.contains(patrol)) {
-                _addPolicePatrol(patrol);
-                if (patrol.distance <=
-                    PATROL_DISTANCE_WARDNING_THRESHOLD_IN_METERS) {
-                  if (!_warnedPatrols.contains(patrol)) {
-                    _warnAboutPatrol(patrol);
-                  }
-                }
-              }
+              _addPolicePatrol(patrol);
             }
           }
         },
@@ -163,7 +152,10 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
   }
 
   void _verifyPatrol(PatrolModel patrol) {
-    var currentLocation = _geolocationService.CurrentLocationData;
+    var currentLocation = _geolocationService.currentLocationData;
+    if (currentLocation == null)
+      return; 
+
     showDialog(
         context: context,
         builder: (context) {
@@ -173,10 +165,10 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
               RaisedButton(
                 onPressed: () {
                   GetIt.instance<PatrolService>().confirmPatrol(
-                      patrol.id,
-                      LatLng(
-                          currentLocation.latitude, currentLocation.longitude),
-                      true);
+                    patrol.id,
+                    LatLng(currentLocation.latitude, currentLocation.longitude),
+                    true
+                  ).catchError((e) => print("ERROR WHILE CONFIRMING PATROL: ${e.toString()}"));
                   Navigator.pop(context);
                 },
                 color: Colors.greenAccent,
@@ -185,10 +177,10 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
               RaisedButton(
                 onPressed: () {
                   GetIt.instance<PatrolService>().confirmPatrol(
-                      patrol.id,
-                      LatLng(
-                          currentLocation.latitude, currentLocation.longitude),
-                      false);
+                    patrol.id,
+                    LatLng(currentLocation.latitude, currentLocation.longitude),
+                    false
+                  ).catchError((e) => print("ERROR WHILE CONFIRMING PATROL: ${e.toString()}"));
                   Navigator.pop(context);
                 },
                 color: Colors.redAccent,
@@ -201,41 +193,63 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
 
   void _reportPatrol() {
     var currentLocationData =
-        GetIt.instance<GeolocationService>().CurrentLocationData;
+        GetIt.instance<GeolocationService>().currentLocationData;
     if (currentLocationData == null) {
-      // TODO: Log this in sentry
       debugPrint('Current GeoLocation Data is null');
-      throw new ArgumentError('Current locationdata is null');
+      return;
     }
-    GetIt.instance<PatrolService>().reportNewPatrol(
+
+    try{
+      GetIt.instance<PatrolService>().reportNewPatrol(
         LatLng(currentLocationData.latitude, currentLocationData.longitude));
+    } on NetworkException catch(e){
+      print("ERROR WHILE REPORTING PATROL: ${e.toString()}");
+    }
   }
 
-  void _addPolicePatrol(PatrolModel patrol) {
-    _controller
-        .addSymbol(SymbolOptions(
-      geometry: LatLng(patrol.lat, patrol.lon),
-      iconImage: AppImages.PoliceCarSymbol,
-      iconSize: 0.5,
-    ))
-        .then((value) {
+  void _checkShouldWarnUser(PatrolModel patrol) {
+    if(patrol.distance == null)
+      return;
+
+    if (patrol.distance > 0 && patrol.distance <= PATROL_DISTANCE_WARDNING_THRESHOLD_IN_METERS) {
+      if (!_warnedPatrols.contains(patrol)) {
+        _warnAboutPatrol(patrol);
+      }
+    } 
+  }
+
+  void _addPolicePatrol(PatrolModel patrol) async {
+    if (_displayedPatrols.contains(patrol) || patrol == null || _controller == null)
+      return;
+
+    try{
+      await _controller.addSymbol(
+        new SymbolOptions(
+          geometry: LatLng(patrol.lat, patrol.lon),
+          iconImage: 'police_car_symbol',
+          iconSize: 0.5,
+        )
+      );    
       _displayedPatrols.add(patrol);
-    });
+      _checkShouldWarnUser(patrol);
+    } catch (e){
+      print("ERROR WHILE ADDING PATROL SYMBOL $e");
+    }
   }
 
   void _addUserSymbol(LatLng latLng) async {
+    if (_controller == null) return;
+
     if (_userSymbol != null) await _controller.removeSymbol(_userSymbol);
-    _controller
-        .addSymbol(new SymbolOptions(
+
+    _controller.addSymbol(new SymbolOptions(
       geometry: latLng,
       iconImage: 'user_symbol',
       iconSize: 0.5,
-    ))
-        .then((newSymbol) {
-      print("New Symbol: " + newSymbol.id);
+    )).then((newSymbol) {
       _userSymbol = newSymbol;
       _controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
           target: latLng, zoom: RemoteConfigModel.mapZoomValue)));
-    });
+    }).catchError((e) => print("ERROR WHILE ADDING USER SYMBOL $e"));
   }
 }

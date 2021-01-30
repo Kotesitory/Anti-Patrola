@@ -50,10 +50,6 @@ class AuthService{
   }
 
   UserModel _userModelFromGoogleUser(GoogleSignInAccount user){
-    if(user == null){
-      return null;
-    }
-
     return UserModel(
       uuid: user.id, 
       username: user.displayName, 
