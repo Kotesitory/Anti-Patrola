@@ -18,10 +18,10 @@ class PatrolService{
     String authToken = await _authService.readToken();
     PatrolContainerDto dto = await _network.getActivePatrols(authToken);
     if (dto == null)
-      return List<PatrolModel>();
+      return [];
 
     return dto.patrols.map((p) {
-      PatrolModel(id: p.id, confidence: p.confidence, lat: p.lat, lon: p.lon, distance: p.distance);
+      return PatrolModel(id: p.id, confidence: p.confidence, lat: p.lat, lon: p.lon, distance: p.distance);
     }).toList();
   }
 
@@ -32,11 +32,11 @@ class PatrolService{
     String authToken = await _authService.readToken();
     PatrolContainerDto dto = await _network.getActivePatrolsInRadius(authToken, userLocation.latitude, userLocation.longitude, _RADIUS_FOR_PATROLS);
     if(dto == null){
-      return List<PatrolModel>();
+      return [];
     }
 
     return dto.patrols.map((p) {
-      PatrolModel(id: p.id, confidence: p.confidence, lat: p.lat, lon: p.lon, distance: p.distance);
+      return PatrolModel(id: p.id, confidence: p.confidence, lat: p.lat, lon: p.lon, distance: p.distance);
     }).toList();
   }
 
@@ -65,6 +65,10 @@ class PatrolService{
   Future<PatrolModel> confirmPatrol(String patrolId, LatLng userLocation, bool confirmation) async {
     String authToken = await _authService.readToken();
     PatrolDto dto = await _network.confirmPatrol(patrolId, userLocation.latitude, userLocation.longitude, confirmation, authToken);
+    if(dto == null){
+      return null;
+    }
+    
     return PatrolModel(id: dto.id, confidence: dto.confidence, lat: dto.lat, lon: dto.lon, distance: null);
   } 
 }
