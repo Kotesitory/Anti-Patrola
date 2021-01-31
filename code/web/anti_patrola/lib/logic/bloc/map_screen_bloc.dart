@@ -13,7 +13,7 @@ import 'map_screen_states.dart';
 class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
   EventBus _eventBus = GetIt.instance<EventBus>();
   GeolocationService _geolocationService = GetIt.instance<GeolocationService>();
-  Timer _timer; // TODO: Dispose this on close
+  Timer _timer;
   int _sendLocationIntervalInSeconds = 5;
   PatrolService _patrolService = GetIt.instance<PatrolService>();
 
@@ -27,11 +27,15 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
     _timer = Timer.periodic(Duration(seconds: _sendLocationIntervalInSeconds),
         (timer) {
       print('TimerStarted');
-      if(!_geolocationService.hasStartedMonitoringForLocation)
-        return;
+      if (!_geolocationService.hasStartedMonitoringForLocation) return;
 
       _sendUserLocation();
     });
+  }
+
+  void dispose() {
+    if(_timer != null && _timer.isActive)
+      _timer.cancel();
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'package:anti_patrola/resources/app_strings.dart';
 import 'package:anti_patrola/routes/routes.dart';
 import 'package:anti_patrola/startup.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,7 +26,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   Widget build(BuildContext context) {
     return Material(
       child: SafeArea(
-        child: Text('Loading Screen'),
+        child: Text(AppStrings.Loading),
       ),
     );
   }

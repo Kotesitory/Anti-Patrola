@@ -1,4 +1,4 @@
-// TODO: Get it from S3 in the future
+// TODO: Get it from S3 for mobile version [production]
 class RemoteConfigModel {
   static const MapBoxTokenSecret =
       'sk.eyJ1Ijoibmlrb2xhazQ3IiwiYSI6ImNraWQ3YzFmZDByNWkyeHBlaWV4YjFnOG8ifQ.c97m_-VTTHwvTO7EvVumXg';

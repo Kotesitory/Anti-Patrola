@@ -5,6 +5,7 @@ import 'package:anti_patrola/logic/bloc/map_screen_states.dart';
 import 'package:anti_patrola/logic/services/geolocation_service.dart';
 import 'package:anti_patrola/logic/services/patrol_service.dart';
 import 'package:anti_patrola/resources/app_images.dart';
+import 'package:anti_patrola/resources/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,7 +98,7 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
                   child: Padding(
                     padding: const EdgeInsets.all(17.0),
                     child: Text(
-                      'Report Patrol',
+                      AppStrings.ReportPatrol,
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -131,7 +132,7 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
               ),
               Center(
                 child: Text(
-                  'There is a police patrol near you! Be aware!',
+                  AppStrings.ThereIsAPolicePatrol,
                   style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -160,7 +161,7 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Did you see a police patrol in the last 30s ?'),
+            title: Text(AppStrings.DidYouSeePolicePatrol),
             actions: [
               RaisedButton(
                 onPressed: () {
@@ -172,7 +173,7 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
                   Navigator.pop(context);
                 },
                 color: Colors.greenAccent,
-                child: Text('YES'),
+                child: Text(AppStrings.Yes),
               ),
               RaisedButton(
                 onPressed: () {
@@ -184,7 +185,7 @@ class _MapBoxScreenWidgetState extends State<MapBoxScreenWidget> {
                   Navigator.pop(context);
                 },
                 color: Colors.redAccent,
-                child: Text('NO'),
+                child: Text(AppStrings.No),
               ),
             ],
           );

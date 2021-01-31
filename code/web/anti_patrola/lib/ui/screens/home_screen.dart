@@ -1,5 +1,6 @@
 import 'package:anti_patrola/logic/services/auth_service.dart';
 import 'package:anti_patrola/resources/app_images.dart';
+import 'package:anti_patrola/resources/app_strings.dart';
 import 'package:anti_patrola/routes/routes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -35,13 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
               elevation: 0,
               color: Colors.transparent,
               onPressed: () {
-                // TODO: Implement logout
                 showDialog(
                     context: context,
                     builder: (context) {
                       return AlertDialog(
                         backgroundColor: Colors.white,
-                        title: Text('Are you sure you want to logout?'),
+                        title: Text(AppStrings.AreYouSureYouWantToLogout),
                         actions: [
                           RaisedButton(
                             onPressed: () {
@@ -55,21 +55,21 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.pop(context);
                             },
                             color: Colors.greenAccent,
-                            child: Text('YES'),
+                            child: Text(AppStrings.Yes),
                           ),
                           RaisedButton(
                             onPressed: () {
                               Navigator.pop(context);
                             },
                             color: Colors.redAccent,
-                            child: Text('NO'),
+                            child: Text(AppStrings.No),
                           ),
                         ],
                       );
                     });
               },
               child: Text(
-                'Logout',
+                AppStrings.Logout,
                 style:
                     TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
